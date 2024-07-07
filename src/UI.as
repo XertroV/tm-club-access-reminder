@@ -1,6 +1,6 @@
 
 void Notify(const string &in msg) {
-    UI::ShowNotification(Meta::ExecutingPlugin().Name, msg);
+    UI::ShowNotification(Meta::ExecutingPlugin().Name, msg, vec4(.1, .1, .1, .8), int(S_NotifyGoodOnScreenSeconds * 1000.));
     trace("Notified: " + msg);
 }
 

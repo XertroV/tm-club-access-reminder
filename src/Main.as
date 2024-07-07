@@ -6,13 +6,13 @@ const string MenuTitle = MenuIconColor + PluginIcon + "\\$z " + PluginName;
 string subName = "None";
 
 void Main() {
+    yield(5);
+    sleep(200);
     auto app = GetApp();
     auto userMgr = app.UserManagerScript;
 
     auto clubEnd = userMgr.Subscription_GetEndTimeStamp(userMgr.Users[0].Id, "Club");
     auto stdEnd = userMgr.Subscription_GetEndTimeStamp(userMgr.Users[0].Id, "Standard");
-
-    clubEnd = clubEnd = 0;
 
     if (clubEnd == 0 && stdEnd == 0) {
         NotifyError("No club/standard subscription found.");
@@ -25,28 +25,30 @@ void Main() {
     auto daysLeft = float(timeLeft) / 86400;
     trace("Days left: " + daysLeft + " of " + subName + " access.");
 
-    daysLeft = 380;
-
-    if (daysLeft > S_ReminderLimitDays) {
+    if (daysLeft > S_ReminderLimitDays && !S_FirstLaunch) {
         return;
     }
+
+    bool wasFirstLaunch = S_FirstLaunch;
+    S_FirstLaunch = false;
 
     if (daysLeft > 7) {
         NotifySuccess(DaysLeftToHuman(daysLeft, "\n"), subName + " Access Remaining");
-        return;
-    }
-
-    if (daysLeft > 1) {
+        if (daysLeft > S_ReminderLimitDays && wasFirstLaunch) {
+            Notify("Note: You won't be reminded again until you have less than " + Text::Format("%.0f", S_ReminderLimitDays) + " days left. (Adjust in settings)");
+        }
+    } else if (daysLeft > 1) {
         NotifyWarning("Your " + subName + " access expires in:\n\n" + DaysLeftToHuman(daysLeft, "\n"), subName + " Access Remaining");
-        return;
-    }
-
-    if (daysLeft > 0) {
+    } else if (daysLeft > 0) {
         NotifyError("Your " + subName + " access expires in:\n\n" + DaysLeftToHuman(daysLeft, "\n"), subName + " Access Remaining");
-        return;
+    } else {
+        NotifyError("Your access has expired.");
     }
 
-    NotifyError("Your access has expired.");
+#if DEV
+    sleep(1000);
+    S_FirstLaunch = true;
+#endif
 }
 
 const float DAYS_PER_YEAR = 365.25;

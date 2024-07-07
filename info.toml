@@ -1,7 +1,7 @@
 [meta]
 name     = "Access Expiry Warning"
 author   = "XertroV"
-category = "Dev"
+category = "Utilities"
 version  = "0.1.5"
 
 [script]
