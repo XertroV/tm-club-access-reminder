@@ -45,7 +45,7 @@ void Main() {
         NotifyError("Your access has expired.");
     }
 
-#if DEV
+#if DEVx
     sleep(1000);
     S_FirstLaunch = true;
 #endif
