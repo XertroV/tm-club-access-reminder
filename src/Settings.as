@@ -1,4 +1,4 @@
-[Setting category="General" name="Minimum days before you get a reminder" min=1 max=731]
+[Setting category="General" name="Minimum days before you get a reminder" min=1 max=1097 description="1097 days is 3 years and change. Ctrl+click to input exact number."]
 float S_ReminderLimitDays = 365;
 
 [Setting category="General" name="Notification on-screen seconds (When > 7 days left)" min=5 max=60 description="Only shown when the game starts."]
