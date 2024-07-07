@@ -12,29 +12,37 @@ void Main() {
     auto clubEnd = userMgr.Subscription_GetEndTimeStamp(userMgr.Users[0].Id, "Club");
     auto stdEnd = userMgr.Subscription_GetEndTimeStamp(userMgr.Users[0].Id, "Standard");
 
+    clubEnd = clubEnd = 0;
+
     if (clubEnd == 0 && stdEnd == 0) {
-        print("No subscription found.");
+        NotifyError("No club/standard subscription found.");
         return;
     }
 
-    subName = clubEnd > stdEnd ? "Club" : "Standard";
+    subName = clubEnd >= stdEnd ? "Club" : "Standard";
 
     auto timeLeft = int64(Math::Max(clubEnd, stdEnd)) - Time::Stamp;
     auto daysLeft = float(timeLeft) / 86400;
     trace("Days left: " + daysLeft + " of " + subName + " access.");
 
+    daysLeft = 380;
+
+    if (daysLeft > S_ReminderLimitDays) {
+        return;
+    }
+
     if (daysLeft > 7) {
-        NotifySuccess("You have " + DaysLeftToHuman(daysLeft) + " left of your " + subName + " access.");
+        NotifySuccess(DaysLeftToHuman(daysLeft, "\n"), subName + " Access Remaining");
         return;
     }
 
     if (daysLeft > 1) {
-        NotifyWarning("You have " + DaysLeftToHuman(daysLeft) + " left of your " + subName + " access.");
+        NotifyWarning("Your " + subName + " access expires in:\n\n" + DaysLeftToHuman(daysLeft, "\n"), subName + " Access Remaining");
         return;
     }
 
     if (daysLeft > 0) {
-        NotifyError("You have " + DaysLeftToHuman(daysLeft) + " left of your " + subName + " access.");
+        NotifyError("Your " + subName + " access expires in:\n\n" + DaysLeftToHuman(daysLeft, "\n"), subName + " Access Remaining");
         return;
     }
 
@@ -43,44 +51,46 @@ void Main() {
 
 const float DAYS_PER_YEAR = 365.25;
 const float DAYS_PER_MONTH = 30.4375;
+const int PARTS_LIMIT = 3;
 
-string DaysLeftToHuman(float daysLeft) {
+string DaysLeftToHuman(float daysLeft, const string &in separator = ", ") {
+    if (daysLeft < 0) return "in the past";
     string[] ret;
     int done = 0;
     if (daysLeft > DAYS_PER_YEAR) {
-        int years = Math::Floor(daysLeft / DAYS_PER_YEAR);
+        int years = int(Math::Floor(daysLeft / DAYS_PER_YEAR));
         ret.InsertLast(Text::Format("%d year", years) + (years > 1 ? "s" : ""));
         daysLeft -= DAYS_PER_YEAR * years;
         done++;
     }
-    if (daysLeft > DAYS_PER_MONTH) {
-        int months = Math::Floor(daysLeft / DAYS_PER_MONTH);
+    if (done < PARTS_LIMIT && daysLeft > DAYS_PER_MONTH) {
+        int months = int(Math::Floor(daysLeft / DAYS_PER_MONTH));
         ret.InsertLast(Text::Format("%d month", months) + (months > 1 ? "s" : ""));
         daysLeft -= DAYS_PER_MONTH * months;
         done++;
     }
-    if (done < 2 && daysLeft > 1) {
-        int days = Math::Floor(daysLeft);
+    if (done < PARTS_LIMIT && daysLeft > 1) {
+        int days = int(Math::Floor(daysLeft));
         ret.InsertLast(Text::Format("%d day", days) + (daysLeft > 1 ? "s" : ""));
         daysLeft -= days;
         done++;
     }
-    if (done < 2 && daysLeft > 0) {
-        int hours = Math::Floor(daysLeft * 24.0);
+    if (done < PARTS_LIMIT && daysLeft > 0) {
+        int hours = int(Math::Floor(daysLeft * 24.0));
         ret.InsertLast(Text::Format("%d hour", hours) + (hours > 1 ? "s" : ""));
         daysLeft -= hours / 24.0;
         done++;
     }
-    if (done < 2 && daysLeft > 0) {
-        int minutes = Math::Floor(daysLeft * 1440.0);
+    if (done < PARTS_LIMIT && daysLeft > 0) {
+        int minutes = int(Math::Floor(daysLeft * 1440.0));
         ret.InsertLast(Text::Format("%d minute", minutes) + (minutes > 1 ? "s" : ""));
         daysLeft -= minutes / 1440.0;
         done++;
     }
-    if (done < 2 && daysLeft > 0) {
-        int seconds = Math::Floor(daysLeft * 86400.0);
+    if (done < PARTS_LIMIT && daysLeft > 0) {
+        int seconds = int(Math::Floor(daysLeft * 86400.0));
         ret.InsertLast(Text::Format("%d second", seconds) + (seconds > 1 ? "s" : ""));
         done++;
     }
-    return string::Join(ret, ", ");
+    return string::Join(ret, separator);
 }
